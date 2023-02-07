@@ -80,9 +80,3 @@ ask_category()
 while True:
     question = api_request_question()
     ask_question(question)
-
-# question = parse_question(question_response)
-# answer = parse_answer(question_response)
-#
-# print(question)
-# print(answer)
