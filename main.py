@@ -63,7 +63,6 @@ def ask_category() -> None:
     """
 
     categories_json = api_request_categories()['trivia_categories']
-    print(categories_json)
     len_categories = len(categories_json)
     print("Select a category:\n")
     for i in range(len_categories):
@@ -72,7 +71,7 @@ def ask_category() -> None:
     while True:
         try:
             # user_category_input = input("\nCategory: ")
-            user_category_input = 1
+            user_category_input = 1  # Automatically select General Knowledge for debugging
             selected_category_name = categories_json[int(user_category_input) - 1]['name']
             selected_category_id = categories_json[int(user_category_input) - 1]['id']
             write_parameter("category", selected_category_id)
