@@ -8,9 +8,17 @@ import re
 # TODO Welcome interface where you can set parameters
 # TODO Allow user to type name of category, throw error if mispelled
 # TODO Organize categories with subcategories
+# TODO Organize functions into module
+# TODO Multiple choice support
+# TODO Add different modes - lightning etc
+# TODO Add analysis file that shows category strengths
+# TODO Create algorithm that automatically adjusts difficulty
+# TODO Look for something more elegant than TKInterface to make GUI nicer
 
 # Priority:
-# TODO Document all functions
+# TODO Keep score
+# TODO Keep high score
+# TODO Create TKinterface
 
 API_URL = "https://opentdb.com/api.php"
 API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
@@ -20,12 +28,22 @@ CHARACTER_LIMIT = 100
 score = 0
 
 
-def api_request_categories():
+def api_request_categories() -> dict:
+    """
+    Calls to the trivia API and asks for a list of all available categories.
+
+    :return: Dictionary of trivia categories
+    """
     categories_response = requests.get(API_CATEGORIES_URL)
     return categories_response.json()
 
 
 def api_request_question() -> dict:
+    """
+    Calls to the API using the config.json file and asks for a question. Creates and then returns a dictionary with just the question and answer paired together.
+
+    :return: Dictionary formatted as {"question":str, "answer":str}.
+    """
     with open('question_parameters.json') as f:
         question_parameters = json.loads(f.read())
         question_response = requests.get(url=API_URL, params=question_parameters)
@@ -37,7 +55,13 @@ def api_request_question() -> dict:
     return question_dict
 
 
-def ask_category():
+def ask_category() -> None:
+    """
+    Requests a list of the available categories from the trivia API, prints them on screen, and prompts the user to select one. Once the user has selected a category, it modifies the config.json file with the corresponding category ID number.
+
+    :return: None
+    """
+
     categories_json = api_request_categories()['trivia_categories']
     print(categories_json)
     len_categories = len(categories_json)
@@ -60,7 +84,12 @@ def ask_category():
             break
 
 
-def ask_difficulty():
+def ask_difficulty() -> None:
+    """
+    Ask the user to set one of three levels of difficulty (easy, medium, or hard), and then modifies the config.json file with the response.
+
+    :return: None
+    """
     difficulty_dict = {
         "e": "easy",
         "m": "medium",
@@ -70,7 +99,13 @@ def ask_difficulty():
     write_parameter("difficulty", difficulty_dict[difficulty])
 
 
-def ask_question():
+def ask_question() -> None:
+    """
+    Calls the trivia API requesting a question, then asks that question of the user and evaluates whether their answer is correct or not.
+
+    :return: None
+    """
+
     question_dict = api_request_question()
     wrapped_question = wrap_text(question_dict['question'], CHARACTER_LIMIT)
     user_answer = input(f"{wrapped_question} T/F? ")[0].lower()
@@ -100,8 +135,7 @@ def write_parameter(parameter: str, value: str | int) -> None:
     Writes a value to the external question_parameters.json file for a given parameter.
 
     :param parameter: 'category', 'difficulty', or 'type'
-    :param value: String or integer to be written to the parameter. 'category' takes an integer while 'difficulty'
-    and 'type' take strings.
+    :param value: String or integer to be written to the parameter. 'category' takes an integer while 'difficulty' and 'type' take strings.
     :return: None
     """
     with open(file='question_parameters.json', mode='r+') as f:
