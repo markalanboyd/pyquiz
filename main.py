@@ -58,7 +58,18 @@ def ask_category():
             break
 
 
-def ask_question(question_dict: dict) -> bool:
+def ask_difficulty():
+    difficulty_dict = {
+        "e": "easy",
+        "m": "medium",
+        "h": "hard",
+    }
+    difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
+    write_parameter("difficulty", difficulty_dict[difficulty])
+
+
+def ask_question():
+    question_dict = api_request_question()
     user_answer = input(f"{question_dict['question']} T/F? ")[0].lower()
     question_answer = question_dict['answer'][0].lower()
     if user_answer == question_answer:
@@ -76,7 +87,7 @@ def write_parameter(parameter: str, value: str | int):
         f.truncate()
 
 
+ask_difficulty()
 ask_category()
 while True:
-    question = api_request_question()
-    ask_question(question)
+    ask_question()
