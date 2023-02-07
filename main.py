@@ -44,9 +44,6 @@ def ask_category():
                 f.seek(0)
                 json.dump(question_parameters, f, indent=4)
                 f.truncate()
-
-
-
         except IndexError:
             print(f"Please enter an integer between 1 and {len_categories}")
             continue
