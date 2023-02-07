@@ -1,6 +1,7 @@
 import requests
 import json
 from html import unescape
+import re
 
 # TODO Check if API can be reached, display error message if not
 # TODO Add token to API call to prevent same question being served
@@ -9,13 +10,19 @@ from html import unescape
 # TODO Organize categories with subcategories
 
 # Priority:
-# TODO Refactor category open/write to file to work for any parameter
-# TODO Ask for difficulty
+# TODO Document all functions
 
 API_URL = "https://opentdb.com/api.php"
 API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
 
+CHARACTER_LIMIT = 100
+
 score = 0
+
+
+def api_request_categories():
+    categories_response = requests.get(API_CATEGORIES_URL)
+    return categories_response.json()
 
 
 def api_request_question() -> dict:
@@ -28,11 +35,6 @@ def api_request_question() -> dict:
         "answer": unescape(question_json["results"][0]["correct_answer"]),
     }
     return question_dict
-
-
-def api_request_categories():
-    categories_response = requests.get(API_CATEGORIES_URL)
-    return categories_response.json()
 
 
 def ask_category():
@@ -70,7 +72,8 @@ def ask_difficulty():
 
 def ask_question():
     question_dict = api_request_question()
-    user_answer = input(f"{question_dict['question']} T/F? ")[0].lower()
+    wrapped_question = wrap_text(question_dict['question'], CHARACTER_LIMIT)
+    user_answer = input(f"{wrapped_question} T/F? ")[0].lower()
     question_answer = question_dict['answer'][0].lower()
     if user_answer == question_answer:
         print("Correct!")
@@ -78,7 +81,29 @@ def ask_question():
         print("Incorrect.")
 
 
-def write_parameter(parameter: str, value: str | int):
+def wrap_text(long_string: str, max_characters: int) -> str:
+    """
+    Inserts a linebreak into long_string that exceeds max_characters and returns it as a string.
+
+    :param long_string:
+    A long string to be broken up.
+    :param max_characters:
+    Maximum number of characters per line.
+    :return:
+    String with added newline characters if necessary.
+    """
+    return '\n'.join(re.findall('.{1,%i}' % max_characters, long_string))
+
+
+def write_parameter(parameter: str, value: str | int) -> None:
+    """
+    Writes a value to the external question_parameters.json file for a given parameter.
+
+    :param parameter: 'category', 'difficulty', or 'type'
+    :param value: String or integer to be written to the parameter. 'category' takes an integer while 'difficulty'
+    and 'type' take strings.
+    :return: None
+    """
     with open(file='question_parameters.json', mode='r+') as f:
         question_parameters = json.load(f)
         question_parameters[parameter] = value
