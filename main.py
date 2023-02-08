@@ -4,7 +4,6 @@ from html import unescape
 import re
 
 # TODO Check if API can be reached, display error message if not
-# TODO Add token to API call to prevent same question being served
 # TODO Welcome interface where you can set parameters
 # TODO Allow user to type name of category, throw error if mispelled
 # TODO Organize categories with subcategories
@@ -14,11 +13,14 @@ import re
 # TODO Add analysis file that shows category strengths
 # TODO Create algorithm that automatically adjusts difficulty
 # TODO Look for something more elegant than TKInterface to make GUI nicer
+# TODO Light/dark mode
+# TODO Breakout write json as a function in its own library
 
 # Priority:
-# TODO Keep score
 # TODO Keep high score
+# TODO Add token to API call to prevent same question being served
 # TODO Create TKinterface
+
 
 API_URL = "https://opentdb.com/api.php"
 API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
@@ -26,6 +28,8 @@ API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
 CHARACTER_LIMIT = 100
 
 score = 0
+streak = 0
+questions = 0
 
 
 def api_request_categories() -> dict:
@@ -44,7 +48,7 @@ def api_request_question() -> dict:
 
     :return: Dictionary formatted as {"question":str, "answer":str}.
     """
-    with open('question_parameters.json') as f:
+    with open('config.json') as f:
         question_parameters = json.loads(f.read())
         question_response = requests.get(url=API_URL, params=question_parameters)
     question_json = question_response.json()
@@ -74,7 +78,7 @@ def ask_category() -> None:
             user_category_input = 1  # Automatically select General Knowledge for debugging
             selected_category_name = categories_json[int(user_category_input) - 1]['name']
             selected_category_id = categories_json[int(user_category_input) - 1]['id']
-            write_parameter("category", selected_category_id)
+            write_json("config.json", "category", selected_category_id)
             print(f"\nYou picked: {selected_category_name}")
         except IndexError:
             print(f"Please enter an integer between 1 and {len_categories}")
@@ -94,25 +98,52 @@ def ask_difficulty() -> None:
         "m": "medium",
         "h": "hard",
     }
-    difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
-    write_parameter("difficulty", difficulty_dict[difficulty])
+    # difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
+    difficulty = "e"  # for debugging
+    write_json("config.json", "difficulty", difficulty_dict[difficulty])
 
 
 def ask_question() -> None:
     """
-    Calls the trivia API requesting a question, then asks that question of the user and evaluates whether their answer is correct or not.
+    Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
 
     :return: None
     """
+    global score
+    global streak
+    global questions
 
     question_dict = api_request_question()
     wrapped_question = wrap_text(question_dict['question'], CHARACTER_LIMIT)
     user_answer = input(f"{wrapped_question} T/F? ")[0].lower()
     question_answer = question_dict['answer'][0].lower()
+    questions += 1
     if user_answer == question_answer:
+        score += 1
+        streak += 1
         print("Correct!")
     else:
+        streak = 0
         print("Incorrect.")
+
+
+def display_score() -> None:
+    """
+    Displays score and streak stats.
+
+    :return: None
+    """
+    global score
+    global streak
+    global questions
+
+    try:
+        percent = round(score / questions * 100)
+    except ZeroDivisionError:
+        percent = 0
+
+    print(f"\nScore: {score}/{questions} ({percent}%)  Streak: {streak}\n")
+    write_json('user_data.json', 'high score', score)
 
 
 def wrap_text(long_string: str, max_characters: int) -> str:
@@ -129,23 +160,29 @@ def wrap_text(long_string: str, max_characters: int) -> str:
     return '\n'.join(re.findall('.{1,%i}' % max_characters, long_string))
 
 
-def write_parameter(parameter: str, value: str | int) -> None:
+def write_json(file_path: str, key: str, value: str | int) -> None:
     """
-    Writes a value to the external question_parameters.json file for a given parameter.
+    Writes a value to the external .json file for a given parameter.
 
-    :param parameter: 'category', 'difficulty', or 'type'
-    :param value: String or integer to be written to the parameter. 'category' takes an integer while 'difficulty' and 'type' take strings.
+    :param file_path: .json file to open and/or create.
+    :param key: Key to search for.
+    :param value: String or integer to be written.
     :return: None
     """
-    with open(file='question_parameters.json', mode='r+') as f:
-        question_parameters = json.load(f)
-        question_parameters[parameter] = value
-        f.seek(0)
-        json.dump(question_parameters, f, indent=4)
-        f.truncate()
+    try:
+        with open(file=file_path, mode='r+') as file:
+            dictionary = json.load(file)
+            dictionary[key] = value
+            file.seek(0)
+            json.dump(dictionary, file, indent=4)
+    except FileNotFoundError:
+        with open(file=file_path, mode='w') as file:
+            dictionary = {key: value}
+            json.dump(dictionary, file, indent=4)
 
 
 ask_difficulty()
 ask_category()
 while True:
+    display_score()
     ask_question()
