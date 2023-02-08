@@ -17,7 +17,6 @@ import re
 # TODO Breakout write json as a function in its own library
 
 # Priority:
-# TODO Keep high score
 # TODO Add token to API call to prevent same question being served
 # TODO Create TKinterface
 
@@ -142,8 +141,16 @@ def display_score() -> None:
     except ZeroDivisionError:
         percent = 0
 
-    print(f"\nScore: {score}/{questions} ({percent}%)  Streak: {streak}\n")
-    write_json('user_data.json', 'high score', score)
+    high_score = read_json('user_data.json', 'high score')
+    best_streak = read_json('user_data.json', 'high streak')
+
+    if score > high_score:
+        write_json('user_data.json', 'high score', score)
+    if streak > best_streak:
+        write_json('user_data.json', 'best streak', streak)
+
+    print(f"\nScore: {score}/{questions} ({percent}%)  Streak: {streak}"
+          f"\nHigh Score: {high_score}  Best Streak: {best_streak}\n")
 
 
 def wrap_text(long_string: str, max_characters: int) -> str:
@@ -158,6 +165,17 @@ def wrap_text(long_string: str, max_characters: int) -> str:
     String with added newline characters if necessary.
     """
     return '\n'.join(re.findall('.{1,%i}' % max_characters, long_string))
+
+
+def read_json(file_path: str, key: str) -> str | int:
+    try:
+        with open(file=file_path, mode='r') as file:
+            dictionary = json.load(file)
+            return dictionary[key]
+    except FileNotFoundError:
+        pass
+    except KeyError:
+        return 0
 
 
 def write_json(file_path: str, key: str, value: str | int) -> None:
