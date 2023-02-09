@@ -2,6 +2,7 @@ import requests
 import json
 from html import unescape
 import re
+from tkinter import *
 
 # TODO Check if API can be reached, display error message if not
 # TODO Welcome interface where you can set parameters
@@ -15,9 +16,9 @@ import re
 # TODO Look for something more elegant than TKInterface to make GUI nicer
 # TODO Light/dark mode
 # TODO Breakout write json as a function in its own library
+# TODO Add token to API call to prevent same question being served
 
 # Priority:
-# TODO Add token to API call to prevent same question being served
 # TODO Create TKinterface
 
 
@@ -29,6 +30,10 @@ CHARACTER_LIMIT = 100
 score = 0
 streak = 0
 questions = 0
+
+
+
+
 
 
 def api_request_categories() -> dict:
@@ -142,7 +147,7 @@ def display_score() -> None:
         percent = 0
 
     high_score = read_json('user_data.json', 'high score')
-    best_streak = read_json('user_data.json', 'high streak')
+    best_streak = read_json('user_data.json', 'best streak')
 
     if score > high_score:
         write_json('user_data.json', 'high score', score)
@@ -199,8 +204,31 @@ def write_json(file_path: str, key: str, value: str | int) -> None:
             json.dump(dictionary, file, indent=4)
 
 
-ask_difficulty()
-ask_category()
-while True:
-    display_score()
-    ask_question()
+# ask_difficulty()
+# ask_category()
+    # display_score()
+    # ask_question()
+
+root = Tk()
+root.title("pyquiz")
+root.geometry("300x300")
+root.minsize(300, 300)
+root.columnconfigure(0, weight=1)
+
+
+select_difficulty_label = Label(root, text="Select Difficulty")
+select_difficulty_label.grid(row=0, column=0)
+
+difficulty_frame = Frame(root)
+difficulty_frame.grid(row=1, column=0)
+
+easy_button = Button(difficulty_frame, text="Easy")
+easy_button.grid(row=0, column=0, sticky='nsew')
+
+medium_button = Button(difficulty_frame, text="Medium")
+medium_button.grid(row=0, column=1, sticky='nsew')
+
+hard_button = Button(difficulty_frame, text="Hard")
+hard_button.grid(row=0, column=2, sticky='nsew')
+
+root.mainloop()
