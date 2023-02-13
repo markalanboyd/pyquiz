@@ -32,10 +32,6 @@ streak = 0
 questions = 0
 
 
-
-
-
-
 def api_request_categories() -> dict:
     """
     Calls to the trivia API and asks for a list of all available categories.
@@ -78,8 +74,8 @@ def ask_category() -> None:
         print(f"{i + 1}. {category}")
     while True:
         try:
-            # user_category_input = input("\nCategory: ")
-            user_category_input = 1  # Automatically select General Knowledge for debugging
+            user_category_input = input("\nCategory: ")
+            # user_category_input = 1  # Automatically select General Knowledge for debugging
             selected_category_name = categories_json[int(user_category_input) - 1]['name']
             selected_category_id = categories_json[int(user_category_input) - 1]['id']
             write_json("config.json", "category", selected_category_id)
@@ -102,8 +98,8 @@ def ask_difficulty() -> None:
         "m": "medium",
         "h": "hard",
     }
-    # difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
-    difficulty = "e"  # for debugging
+    difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
+    # difficulty = "e"  # for debugging
     write_json("config.json", "difficulty", difficulty_dict[difficulty])
 
 
@@ -172,9 +168,9 @@ def wrap_text(long_string: str, max_characters: int) -> str:
     return '\n'.join(re.findall('.{1,%i}' % max_characters, long_string))
 
 
-def read_json(file_path: str, key: str) -> str | int:
+def read_json(filepath: str, key: str) -> str | int:
     try:
-        with open(file=file_path, mode='r') as file:
+        with open(file=filepath, mode='r') as file:
             dictionary = json.load(file)
             return dictionary[key]
     except FileNotFoundError:
@@ -183,31 +179,36 @@ def read_json(file_path: str, key: str) -> str | int:
         return 0
 
 
-def write_json(file_path: str, key: str, value: str | int) -> None:
+def write_json(filepath: str, key: str, value: str | int) -> None:
     """
     Writes a value to the external .json file for a given parameter.
 
-    :param file_path: .json file to open and/or create.
+    :param filepath: .json file to open and/or create.
     :param key: Key to search for.
     :param value: String or integer to be written.
     :return: None
     """
     try:
-        with open(file=file_path, mode='r+') as file:
+        with open(file=filepath, mode='r+') as file:
             dictionary = json.load(file)
             dictionary[key] = value
             file.seek(0)
             json.dump(dictionary, file, indent=4)
     except FileNotFoundError:
-        with open(file=file_path, mode='w') as file:
+        with open(file=filepath, mode='w') as file:
             dictionary = {key: value}
             json.dump(dictionary, file, indent=4)
 
 
+def raise_frame(frame_to_raise):
+    frame_to_raise.tkraise()
+
+
 # ask_difficulty()
 # ask_category()
-    # display_score()
-    # ask_question()
+# while True:
+#     display_score()
+#     ask_question()
 
 root = Tk()
 root.title("pyquiz")
@@ -216,19 +217,72 @@ root.minsize(300, 300)
 root.columnconfigure(0, weight=1)
 
 
-select_difficulty_label = Label(root, text="Select Difficulty")
-select_difficulty_label.grid(row=0, column=0)
+welcome_frame = Frame(root)
+settings_frame = Frame(root)
+game_frame = Frame(root)
+stats_frame = Frame(root)
 
-difficulty_frame = Frame(root)
-difficulty_frame.grid(row=1, column=0)
+frames = (welcome_frame, settings_frame, game_frame, stats_frame)
 
-easy_button = Button(difficulty_frame, text="Easy")
-easy_button.grid(row=0, column=0, sticky='nsew')
+for frame in frames:
+    frame.grid(row=0, column=0, sticky='news')
 
-medium_button = Button(difficulty_frame, text="Medium")
-medium_button.grid(row=0, column=1, sticky='nsew')
+raise_frame(welcome_frame)
 
-hard_button = Button(difficulty_frame, text="Hard")
-hard_button.grid(row=0, column=2, sticky='nsew')
+
+# Welcome Frame
+
+welcome_title_frame = Frame(welcome_frame, pady=30)
+welcome_title_frame.pack()
+welcome_title_label = Label(welcome_title_frame, text='PyQuiz', font=("Helvetica", 48))
+welcome_title_label.pack()
+version_label = Label(welcome_title_frame, text='v0.1', font=("Helvetica", 18))
+version_label.pack()
+
+welcome_buttons_frame = Frame(welcome_frame, padx=10, pady=30)
+welcome_buttons_frame.pack()
+new_game_button = Button(welcome_buttons_frame, text='New Game', command=lambda: raise_frame(game_frame))
+new_game_button.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
+stats_button = Button(welcome_buttons_frame, text='Stats')
+stats_button.grid(row=1, column=0)
+settings_button = Button(welcome_buttons_frame, text='Settings', command=lambda: raise_frame(settings_frame))
+settings_button.grid(row=1, column=1)
+
+
+# Settings Frame
+
+settings_title_frame = Frame(settings_frame, pady=30)
+settings_title_frame.pack()
+settings_title_label = Label(settings_title_frame, text='Settings', font=("Helvetica", 24))
+settings_title_label.pack()
+
+settings_widget_frame = Frame(settings_frame)
+settings_widget_frame.pack()
+
+difficulty = [
+    "Easy",
+    "Medium",
+    "Hard",
+    "Auto"
+]
+selected_difficulty = StringVar()
+selected_difficulty.set("Easy")
+
+difficulty_label = Label(settings_widget_frame, text='Difficulty:')
+difficulty_label.grid(row=0, column=0, pady=10)
+difficulty_dropdown = OptionMenu(settings_widget_frame, selected_difficulty, *difficulty)
+difficulty_dropdown.config(width=4)
+difficulty_dropdown.grid(row=0, column=2, pady=10)
+
+settings_back_button = Button(settings_widget_frame, text='Back', command=lambda: raise_frame(welcome_frame))
+settings_back_button.grid(row=1, column=1)
+
+
+# Game Frame
+
+game_title_frame = Frame(game_frame, pady=30)
+game_title_frame.pack()
+game_title_label = Label(game_title_frame, text="Endless Mode", font=("Helvetica", 24))
+game_title_label.pack()
 
 root.mainloop()
