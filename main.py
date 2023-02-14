@@ -217,47 +217,60 @@ root.minsize(300, 300)
 root.columnconfigure(0, weight=1)
 
 
-welcome_frame = Frame(root)
-settings_frame = Frame(root)
-game_frame = Frame(root)
-stats_frame = Frame(root)
+frame_welcome = Frame(root)
+frame_settings = Frame(root)
+frame_game = Frame(root)
+frame_stats = Frame(root)
 
-frames = (welcome_frame, settings_frame, game_frame, stats_frame)
+frames = (frame_welcome, frame_settings, frame_game, frame_stats)
 
 for frame in frames:
     frame.grid(row=0, column=0, sticky='news')
 
-raise_frame(welcome_frame)
+raise_frame(frame_welcome)
 
 
 # Welcome Frame
 
-welcome_title_frame = Frame(welcome_frame, pady=30)
-welcome_title_frame.pack()
-welcome_title_label = Label(welcome_title_frame, text='PyQuiz', font=("Helvetica", 48))
-welcome_title_label.pack()
-version_label = Label(welcome_title_frame, text='v0.1', font=("Helvetica", 18))
-version_label.pack()
+frame_welcome_title = Frame(frame_welcome, pady=30)
+frame_welcome_title.pack()
+label_welcome_title = Label(frame_welcome_title, text='PyQuiz', font=("Helvetica", 48))
+label_welcome_title.pack()
+label_version = Label(frame_welcome_title, text='v0.1', font=("Helvetica", 18))
+label_version.pack()
 
-welcome_buttons_frame = Frame(welcome_frame, padx=10, pady=30)
-welcome_buttons_frame.pack()
-new_game_button = Button(welcome_buttons_frame, text='New Game', command=lambda: raise_frame(game_frame))
-new_game_button.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
-stats_button = Button(welcome_buttons_frame, text='Stats')
-stats_button.grid(row=1, column=0)
-settings_button = Button(welcome_buttons_frame, text='Settings', command=lambda: raise_frame(settings_frame))
-settings_button.grid(row=1, column=1)
+frame_welcome_buttons = Frame(frame_welcome, padx=10, pady=30)
+frame_welcome_buttons.pack()
+button_new_game = Button(frame_welcome_buttons, text='New Game', command=lambda: raise_frame(frame_game))
+button_new_game.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
+button_stats = Button(frame_welcome_buttons, text='Stats', command=lambda: raise_frame(frame_stats))
+button_stats.grid(row=1, column=0)
+button_settings = Button(frame_welcome_buttons, text='Settings', command=lambda: raise_frame(frame_settings))
+button_settings.grid(row=1, column=1)
+
+
+# Stats Frame
+
+frame_stats_title = Frame(frame_stats, pady=30)
+frame_stats_title.pack()
+label_stats_title = Label(frame_stats_title, text='Stats', font=("Helvetica", 24))
+label_stats_title.pack()
+
+frame_stats_widgets = Frame(frame_stats)
+frame_stats_widgets.pack()
+button_stats_back = Button(frame_stats_widgets, text='Back', command=lambda: raise_frame(frame_welcome))
+button_stats_back.pack()
 
 
 # Settings Frame
 
-settings_title_frame = Frame(settings_frame, pady=30)
-settings_title_frame.pack()
-settings_title_label = Label(settings_title_frame, text='Settings', font=("Helvetica", 24))
-settings_title_label.pack()
+frame_settings_title = Frame(frame_settings, pady=30)
+frame_settings_title.pack()
+label_settings_title = Label(frame_settings_title, text='Settings', font=("Helvetica", 24))
+label_settings_title.pack()
 
-settings_widget_frame = Frame(settings_frame)
-settings_widget_frame.pack()
+frame_settings_widgets = Frame(frame_settings)
+frame_settings_widgets.pack()
 
 difficulty = [
     "Easy",
@@ -268,21 +281,38 @@ difficulty = [
 selected_difficulty = StringVar()
 selected_difficulty.set("Easy")
 
-difficulty_label = Label(settings_widget_frame, text='Difficulty:')
-difficulty_label.grid(row=0, column=0, pady=10)
-difficulty_dropdown = OptionMenu(settings_widget_frame, selected_difficulty, *difficulty)
-difficulty_dropdown.config(width=4)
-difficulty_dropdown.grid(row=0, column=2, pady=10)
+label_difficulty = Label(frame_settings_widgets, text='Difficulty:')
+label_difficulty.grid(row=0, column=0, pady=10)
+dropdown_difficulty = OptionMenu(frame_settings_widgets, selected_difficulty, *difficulty)
+dropdown_difficulty.config(width=4)
+dropdown_difficulty.grid(row=0, column=2, pady=10)
 
-settings_back_button = Button(settings_widget_frame, text='Back', command=lambda: raise_frame(welcome_frame))
-settings_back_button.grid(row=1, column=1)
+button_settings_back = Button(frame_settings_widgets, text='Back', command=lambda: raise_frame(frame_welcome))
+button_settings_back.grid(row=1, column=1)
 
 
 # Game Frame
 
-game_title_frame = Frame(game_frame, pady=30)
-game_title_frame.pack()
-game_title_label = Label(game_title_frame, text="Endless Mode", font=("Helvetica", 24))
-game_title_label.pack()
+frame_game_title = Frame(frame_game, pady=30)
+frame_game_title.pack()
+label_game_title = Label(frame_game_title, text="Endless Mode", font=("Helvetica", 24))
+label_game_title.pack()
+
+frame_game_question = Frame(frame_game)
+frame_game_question.pack()
+label_game_question = Label(frame_game_question, text='Question goes here')
+label_game_question.pack()
+
+frame_game_buttons = Frame(frame_game, pady=30)
+frame_game_buttons.pack()
+button_true = Button(frame_game_buttons, text='True')
+button_true.grid(row=0, column=0, sticky='news')
+button_false = Button(frame_game_buttons, text='False')
+button_false.grid(row=0, column=2, sticky='news')
+button_game_exit = Button(frame_game_buttons, text='Exit', command=lambda: raise_frame(frame_welcome))
+button_game_exit.grid(row=1, column=1, pady=30)
+
+
+
 
 root.mainloop()
