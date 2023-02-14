@@ -4,6 +4,7 @@ from html import unescape
 import re
 from tkinter import *
 
+# Todos
 # TODO Check if API can be reached, display error message if not
 # TODO Welcome interface where you can set parameters
 # TODO Allow user to type name of category, throw error if mispelled
@@ -22,6 +23,7 @@ from tkinter import *
 # TODO Create TKinterface
 
 
+# Global Variables
 API_URL = "https://opentdb.com/api.php"
 API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
 
@@ -31,6 +33,8 @@ score = 0
 streak = 0
 questions = 0
 
+
+# Functions
 
 def api_request_categories() -> dict:
     """
@@ -204,11 +208,20 @@ def raise_frame(frame_to_raise):
     frame_to_raise.tkraise()
 
 
-# ask_difficulty()
-# ask_category()
-# while True:
-#     display_score()
-#     ask_question()
+def return_question() -> str:
+    """
+    Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
+
+    :return: None
+    """
+    global score
+    global streak
+    global questions
+
+    question_dict = api_request_question()
+    return question_dict['question']
+
+# Tkinter GUI Setup
 
 root = Tk()
 root.title("pyquiz")
@@ -300,8 +313,9 @@ label_game_title.pack()
 
 frame_game_question = Frame(frame_game)
 frame_game_question.pack()
-label_game_question = Label(frame_game_question, text='Question goes here')
+label_game_question = Label(frame_game_question, text='Question goes here', wraplength=250, justify=CENTER)
 label_game_question.pack()
+label_game_question.config(text=return_question())
 
 frame_game_buttons = Frame(frame_game, pady=30)
 frame_game_buttons.pack()
