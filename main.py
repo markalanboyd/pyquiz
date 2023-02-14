@@ -208,18 +208,14 @@ def raise_frame(frame_to_raise):
     frame_to_raise.tkraise()
 
 
-def return_question() -> str:
+def new_question():
     """
     Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
 
     :return: None
     """
-    global score
-    global streak
-    global questions
-
     question_dict = api_request_question()
-    return question_dict['question']
+    label_game_question.config(text=question_dict['question'])
 
 # Tkinter GUI Setup
 
@@ -315,11 +311,10 @@ frame_game_question = Frame(frame_game)
 frame_game_question.pack()
 label_game_question = Label(frame_game_question, text='Question goes here', wraplength=250, justify=CENTER)
 label_game_question.pack()
-label_game_question.config(text=return_question())
 
 frame_game_buttons = Frame(frame_game, pady=30)
-frame_game_buttons.pack()
-button_true = Button(frame_game_buttons, text='True')
+frame_game_buttons.pack(anchor=S, expand=True)
+button_true = Button(frame_game_buttons, text='True', command=new_question)
 button_true.grid(row=0, column=0, sticky='news')
 button_false = Button(frame_game_buttons, text='False')
 button_false.grid(row=0, column=2, sticky='news')
@@ -327,6 +322,5 @@ button_game_exit = Button(frame_game_buttons, text='Exit', command=lambda: raise
 button_game_exit.grid(row=1, column=1, pady=30)
 
 
-
-
+# Loop
 root.mainloop()
