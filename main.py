@@ -217,13 +217,15 @@ def new_question():
     question_dict = api_request_question()
     label_game_question.config(text=question_dict['question'])
 
+
 # Tkinter GUI Setup
 
 root = Tk()
 root.title("pyquiz")
-root.geometry("300x300")
-root.minsize(300, 300)
+root.geometry("300x400")
+root.minsize(300, 400)
 root.columnconfigure(0, weight=1)
+root.rowconfigure(1, weight=1)
 
 
 frame_welcome = Frame(root)
@@ -236,7 +238,7 @@ frames = (frame_welcome, frame_settings, frame_game, frame_stats)
 for frame in frames:
     frame.grid(row=0, column=0, sticky='news')
 
-raise_frame(frame_welcome)
+raise_frame(frame_game)
 
 
 # Welcome Frame
@@ -307,19 +309,23 @@ frame_game_title.pack()
 label_game_title = Label(frame_game_title, text="Endless Mode", font=("Helvetica", 24))
 label_game_title.pack()
 
-frame_game_question = Frame(frame_game)
+frame_game_question = Frame(frame_game, width=300, height=100)
+frame_game_question.pack_propagate(False)
 frame_game_question.pack()
 label_game_question = Label(frame_game_question, text='Question goes here', wraplength=250, justify=CENTER)
 label_game_question.pack()
 
 frame_game_buttons = Frame(frame_game, pady=30)
-frame_game_buttons.pack(anchor=S, expand=True)
-button_true = Button(frame_game_buttons, text='True', command=new_question)
+
+frame_game_buttons.pack()
+button_true = Button(frame_game_buttons, text='True')
 button_true.grid(row=0, column=0, sticky='news')
 button_false = Button(frame_game_buttons, text='False')
 button_false.grid(row=0, column=2, sticky='news')
+button_next_question = Button(frame_game_buttons, text='Next Question', command=new_question)
+button_next_question.grid(row=1, column=0, columnspan=3, sticky='news', pady=10)
 button_game_exit = Button(frame_game_buttons, text='Exit', command=lambda: raise_frame(frame_welcome))
-button_game_exit.grid(row=1, column=1, pady=30)
+button_game_exit.grid(row=2, column=1, pady=10)
 
 
 # Loop
