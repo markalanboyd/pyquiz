@@ -18,6 +18,7 @@ from tkinter import *
 # TODO Light/dark mode
 # TODO Breakout write json as a function in its own library
 # TODO Add token to API call to prevent same question being served
+# TODO Add loading indicator
 
 # Priority:
 # TODO Create TKinterface
@@ -32,6 +33,11 @@ CHARACTER_LIMIT = 100
 score = 0
 streak = 0
 questions = 0
+
+question_dict = {}
+question_answered = True
+
+user_answer = None
 
 
 # Functions
@@ -154,22 +160,8 @@ def display_score() -> None:
     if streak > best_streak:
         write_json('user_data.json', 'best streak', streak)
 
-    print(f"\nScore: {score}/{questions} ({percent}%)  Streak: {streak}"
-          f"\nHigh Score: {high_score}  Best Streak: {best_streak}\n")
-
-
-def wrap_text(long_string: str, max_characters: int) -> str:
-    """
-    Inserts a linebreak into long_string that exceeds max_characters and returns it as a string.
-
-    :param long_string:
-    A long string to be broken up.
-    :param max_characters:
-    Maximum number of characters per line.
-    :return:
-    String with added newline characters if necessary.
-    """
-    return '\n'.join(re.findall('.{1,%i}' % max_characters, long_string))
+    label_score.config(text=f'Score: {score}/{questions}  |  {percent}%  |  Streak: {streak}\n'
+                            f'High Score: {high_score}  |  Best Streak: {best_streak}')
 
 
 def read_json(filepath: str, key: str) -> str | int:
@@ -208,22 +200,60 @@ def raise_frame(frame_to_raise):
     frame_to_raise.tkraise()
 
 
-def new_question():
+def next_question():
     """
     Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
 
     :return: None
     """
-    question_dict = api_request_question()
-    label_game_question.config(text=question_dict['question'])
+    global question_answered
+    global question_dict
+
+    if question_answered:
+        question_answered = False
+        question_dict = api_request_question()
+        label_game_question.config(text=question_dict['question'])
+        button_true.config(command=answer_true)
+        button_false.config(command=answer_false)
+
+
+def check_answer():
+    global user_answer, question_answered, questions, score, streak
+
+    question_answered = True
+    button_true.config(command='')
+    button_false.config(command='')
+    questions += 1
+
+    if user_answer == question_dict['answer']:
+        score += 1
+        streak += 1
+    else:
+        streak = 0
+
+    display_score()
+
+
+def answer_true():
+    global user_answer
+
+    user_answer = 'True'
+    check_answer()
+
+
+def answer_false():
+    global user_answer
+
+    user_answer = 'False'
+    check_answer()
 
 
 # Tkinter GUI Setup
 
 root = Tk()
 root.title("pyquiz")
-root.geometry("300x400")
-root.minsize(300, 400)
+root.geometry("300x350")
+root.resizable(False, False)
 root.columnconfigure(0, weight=1)
 root.rowconfigure(1, weight=1)
 
@@ -238,7 +268,7 @@ frames = (frame_welcome, frame_settings, frame_game, frame_stats)
 for frame in frames:
     frame.grid(row=0, column=0, sticky='news')
 
-raise_frame(frame_game)
+raise_frame(frame_welcome)
 
 
 # Welcome Frame
@@ -252,7 +282,9 @@ label_version.pack()
 
 frame_welcome_buttons = Frame(frame_welcome, padx=10, pady=30)
 frame_welcome_buttons.pack()
-button_new_game = Button(frame_welcome_buttons, text='New Game', command=lambda: raise_frame(frame_game))
+button_new_game = Button(frame_welcome_buttons,
+                         text='New Game',
+                         command=lambda: [raise_frame(frame_game), next_question(), display_score()])
 button_new_game.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
 button_stats = Button(frame_welcome_buttons, text='Stats', command=lambda: raise_frame(frame_stats))
 button_stats.grid(row=1, column=0)
@@ -309,24 +341,27 @@ frame_game_title.pack()
 label_game_title = Label(frame_game_title, text="Endless Mode", font=("Helvetica", 24))
 label_game_title.pack()
 
-frame_game_question = Frame(frame_game, width=300, height=100)
+frame_game_question = Frame(frame_game, width=300, height=60)
 frame_game_question.pack_propagate(False)
 frame_game_question.pack()
 label_game_question = Label(frame_game_question, text='Question goes here', wraplength=250, justify=CENTER)
 label_game_question.pack()
 
-frame_game_buttons = Frame(frame_game, pady=30)
-
+frame_game_buttons = Frame(frame_game, pady=10)
 frame_game_buttons.pack()
-button_true = Button(frame_game_buttons, text='True')
+button_true = Button(frame_game_buttons, text='True', command=answer_true)
 button_true.grid(row=0, column=0, sticky='news')
-button_false = Button(frame_game_buttons, text='False')
+button_false = Button(frame_game_buttons, text='False', command=answer_false)
 button_false.grid(row=0, column=2, sticky='news')
-button_next_question = Button(frame_game_buttons, text='Next Question', command=new_question)
+button_next_question = Button(frame_game_buttons, text='Next Question', command=next_question)
 button_next_question.grid(row=1, column=0, columnspan=3, sticky='news', pady=10)
 button_game_exit = Button(frame_game_buttons, text='Exit', command=lambda: raise_frame(frame_welcome))
 button_game_exit.grid(row=2, column=1, pady=10)
 
+frame_game_score = Frame(frame_game)
+frame_game_score.pack()
+label_score = Label(frame_game_score, text='')
+label_score.pack()
 
 # Loop
 root.mainloop()
