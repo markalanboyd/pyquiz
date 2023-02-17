@@ -113,30 +113,6 @@ def ask_difficulty() -> None:
     write_json("config.json", "difficulty", difficulty_dict[difficulty])
 
 
-def ask_question() -> None:
-    """
-    Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
-
-    :return: None
-    """
-    global score
-    global streak
-    global questions
-
-    question_dict = api_request_question()
-    wrapped_question = wrap_text(question_dict['question'], CHARACTER_LIMIT)
-    user_answer = input(f"{wrapped_question} T/F? ")[0].lower()
-    question_answer = question_dict['answer'][0].lower()
-    questions += 1
-    if user_answer == question_answer:
-        score += 1
-        streak += 1
-        print("Correct!")
-    else:
-        streak = 0
-        print("Incorrect.")
-
-
 def display_score() -> None:
     """
     Displays score and streak stats.
@@ -155,9 +131,9 @@ def display_score() -> None:
     high_score = read_json('user_data.json', 'high score')
     best_streak = read_json('user_data.json', 'best streak')
 
-    if score > high_score:
+    if score >= high_score:
         write_json('user_data.json', 'high score', score)
-    if streak > best_streak:
+    if streak >= best_streak:
         write_json('user_data.json', 'best streak', streak)
 
     label_score.config(text=f'Score: {score}/{questions}  |  {percent}%  |  Streak: {streak}\n'
@@ -206,10 +182,12 @@ def next_question():
 
     :return: None
     """
-    global question_answered
-    global question_dict
+    global question_answered, question_dict
 
     if question_answered:
+        button_next_question.config(state='disabled')
+        button_true.config(state='normal')
+        button_false.config(state='normal')
         question_answered = False
         question_dict = api_request_question()
         label_game_question.config(text=question_dict['question'])
@@ -237,6 +215,9 @@ def check_answer():
 def answer_true():
     global user_answer
 
+    button_next_question.config(state='normal')
+    button_true.config(state='active')
+    button_false.config(state='disabled')
     user_answer = 'True'
     check_answer()
 
@@ -244,15 +225,23 @@ def answer_true():
 def answer_false():
     global user_answer
 
+    button_next_question.config(state='normal')
+    button_true.config(state='disabled')
+    button_false.config(state='active')
     user_answer = 'False'
     check_answer()
+
+
+def reset_stats():
+    write_json('user_data.json', 'high score', 0)
+    write_json('user_data.json', 'best streak', 0)
 
 
 # Tkinter GUI Setup
 
 root = Tk()
-root.title("pyquiz")
-root.geometry("300x350")
+root.title("PyQuiz")
+root.geometry("300x400")
 root.resizable(False, False)
 root.columnconfigure(0, weight=1)
 root.rowconfigure(1, weight=1)
@@ -301,6 +290,8 @@ label_stats_title.pack()
 
 frame_stats_widgets = Frame(frame_stats)
 frame_stats_widgets.pack()
+button_stats_reset = Button(frame_stats_widgets, text='Reset Stats', command=reset_stats)
+button_stats_reset.pack()
 button_stats_back = Button(frame_stats_widgets, text='Back', command=lambda: raise_frame(frame_welcome))
 button_stats_back.pack()
 
