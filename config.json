@@ -2,5 +2,6 @@
     "amount": 1,
     "category": 9,
     "difficulty": "easy",
-    "type": "boolean"
+    "type": "boolean",
+    "token": "54f2796173626a31052c3ceaee71e50ddf2dce432dff161c1ac5393370dafbbc"
 }

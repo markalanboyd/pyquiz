@@ -19,14 +19,14 @@ from tkinter import *
 # TODO Breakout write json as a function in its own library
 # TODO Add token to API call to prevent same question being served
 # TODO Add loading indicator
-
-# Priority:
-# TODO Create TKinterface
+# TODO Break out classes/refactor
+# TODO Link difficulty selector to API request
 
 
 # Global Variables
 API_URL = "https://opentdb.com/api.php"
 API_CATEGORIES_URL = "https://opentdb.com/api_category.php"
+API_TOKEN_URL = "https://opentdb.com/api_token.php?command=request"
 
 CHARACTER_LIMIT = 100
 
@@ -34,10 +34,10 @@ score = 0
 streak = 0
 questions = 0
 
-question_dict = {}
+question_dict: dict
 question_answered = True
 
-user_answer = None
+user_answer = ''
 
 
 # Functions
@@ -52,12 +52,20 @@ def api_request_categories() -> dict:
     return categories_response.json()
 
 
+def api_request_token() -> None:
+    token_response = requests.get(API_TOKEN_URL)
+    token_string = token_response.json()['token']
+    write_json('config.json', key='token', value=f"{token_string}")
+
+
 def api_request_question() -> dict:
     """
     Calls to the API using the config.json file and asks for a question. Creates and then returns a dictionary with just the question and answer paired together.
 
     :return: Dictionary formatted as {"question":str, "answer":str}.
     """
+    global question_dict
+
     with open('config.json') as f:
         question_parameters = json.loads(f.read())
         question_response = requests.get(url=API_URL, params=question_parameters)
@@ -291,7 +299,12 @@ frame_welcome_buttons = Frame(frame_welcome, padx=10, pady=30)
 frame_welcome_buttons.pack()
 button_new_game = Button(frame_welcome_buttons,
                          text='New Game',
-                         command=lambda: [raise_frame(frame_game), next_question(), update_scoreboard()])
+                         command=lambda: [raise_frame(frame_game),
+                                          api_request_token(),
+                                          next_question(),
+                                          update_scoreboard()
+                                          ]
+                         )
 button_new_game.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
 button_stats = Button(frame_welcome_buttons, text='Stats', command=lambda: raise_frame(frame_stats))
 button_stats.grid(row=1, column=0)
