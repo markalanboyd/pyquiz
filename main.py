@@ -113,7 +113,7 @@ def ask_difficulty() -> None:
     write_json("config.json", "difficulty", difficulty_dict[difficulty])
 
 
-def display_score() -> None:
+def update_scoreboard() -> None:
     """
     Displays score and streak stats.
 
@@ -135,6 +135,9 @@ def display_score() -> None:
         write_json('user_data.json', 'high score', score)
     if streak >= best_streak:
         write_json('user_data.json', 'best streak', streak)
+
+    high_score = read_json('user_data.json', 'high score')
+    best_streak = read_json('user_data.json', 'best streak')
 
     label_score.config(text=f'Score: {score}/{questions}  |  {percent}%  |  Streak: {streak}\n'
                             f'High Score: {high_score}  |  Best Streak: {best_streak}')
@@ -184,6 +187,9 @@ def next_question():
     """
     global question_answered, question_dict
 
+    button_true.config(highlightbackground='systemTransparent')
+    button_false.config(highlightbackground='systemTransparent')
+
     if question_answered:
         button_next_question.config(state='disabled')
         button_true.config(state='normal')
@@ -209,7 +215,7 @@ def check_answer():
     else:
         streak = 0
 
-    display_score()
+    update_scoreboard()
 
 
 def answer_true():
@@ -219,6 +225,12 @@ def answer_true():
     button_true.config(state='active')
     button_false.config(state='disabled')
     user_answer = 'True'
+
+    if question_dict['answer'] == user_answer:
+        button_true.config(highlightbackground='green')
+    else:
+        button_true.config(highlightbackground='red')
+
     check_answer()
 
 
@@ -229,6 +241,12 @@ def answer_false():
     button_true.config(state='disabled')
     button_false.config(state='active')
     user_answer = 'False'
+
+    if question_dict['answer'] == user_answer:
+        button_false.config(highlightbackground='green')
+    else:
+        button_false.config(highlightbackground='red')
+
     check_answer()
 
 
@@ -273,7 +291,7 @@ frame_welcome_buttons = Frame(frame_welcome, padx=10, pady=30)
 frame_welcome_buttons.pack()
 button_new_game = Button(frame_welcome_buttons,
                          text='New Game',
-                         command=lambda: [raise_frame(frame_game), next_question(), display_score()])
+                         command=lambda: [raise_frame(frame_game), next_question(), update_scoreboard()])
 button_new_game.grid(row=0, column=0, columnspan=2, pady=10, sticky='news')
 button_stats = Button(frame_welcome_buttons, text='Stats', command=lambda: raise_frame(frame_stats))
 button_stats.grid(row=1, column=0)
