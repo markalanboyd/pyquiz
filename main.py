@@ -26,12 +26,11 @@ CHARACTER_LIMIT = 100
 score = 0
 streak = 0
 questions = 0
-accumulator = 0
+previous_score = 0
+difficulty_accumulator = 0
 
 question_dict: dict
 question_answered = True
-
-auto_difficulty_on = False
 
 user_answer = ''
 
@@ -61,6 +60,10 @@ def api_request_question() -> dict:
     :return: Dictionary formatted as {"question":str, "answer":str}.
     """
     global question_dict
+
+    if selected_difficulty.get() == "Auto":
+        auto_difficulty()
+        update_scoreboard()
 
     with open('config.json') as f:
         question_parameters = json.loads(f.read())
@@ -99,8 +102,11 @@ def update_scoreboard() -> None:
     high_score = read_json('user_data.json', 'high score')
     best_streak = read_json('user_data.json', 'best streak')
 
+    current_difficulty = read_json('config.json', 'difficulty')
+
     label_score.config(text=f'Score: {score}/{questions}  |  {percent}%  |  Streak: {streak}\n'
-                            f'High Score: {high_score}  |  Best Streak: {best_streak}')
+                            f'High Score: {high_score}  |  Best Streak: {best_streak}\n'
+                            f'Current Difficulty: {current_difficulty.title()}')
 
 
 def read_json(filepath: str, key: str) -> str | int:
@@ -163,7 +169,7 @@ def next_question() -> None:
 
 
 def check_answer() -> None:
-    global user_answer, question_answered, questions, score, streak, accumulator
+    global user_answer, question_answered, questions, score, streak, previous_score
 
     question_answered = True
     button_true.config(command='')
@@ -175,9 +181,6 @@ def check_answer() -> None:
         streak += 1
     else:
         streak = 0
-
-    if auto_difficulty_on:
-        auto_difficulty()
 
     update_scoreboard()
 
@@ -230,21 +233,34 @@ def write_settings() -> None:
         auto_difficulty_on = True
 
 
-def auto_difficulty() -> None:
-    global score, accumulator
-
-    difficulty_list = ['easy', 'medium', 'hard']
-    current_difficulty = read_json("config.json", key="difficulty")
-    current_difficulty_index = difficulty_list.index(current_difficulty)
-
-    if score > accumulator:
-        accumulator += 1
-        if current_difficulty_index < 2:
-            selected_difficulty.set(difficulty_list[current_difficulty_index + 1])
-            write_json('config.json', key='difficulty', value=difficulty_list[current_difficulty_index + 1])
+def clamp(value: int | float, min_value: int | float, max_value: int | float) -> int | float:
+    if value < min_value:
+        return min_value
+    elif value > max_value:
+        return max_value
     else:
-        if current_difficulty_index > 0:
-            write_json('config.json', key='difficulty', value=difficulty_list[current_difficulty_index - 1])
+        return value
+
+
+def auto_difficulty() -> None:
+    global score, previous_score, difficulty_accumulator
+
+    if score > previous_score:
+        previous_score += 1
+        difficulty_accumulator += 1
+    else:
+        difficulty_accumulator -= 3
+        difficulty_accumulator = clamp(difficulty_accumulator, 0, 9)
+
+    if 0 <= difficulty_accumulator < 3:
+        difficulty_value = 'easy'
+    elif 3 <= difficulty_accumulator < 6:
+        difficulty_value = 'medium'
+    else:
+        difficulty_value = 'hard'
+
+    write_json('config.json', key='difficulty', value=difficulty_value)
+    print(difficulty_value, difficulty_accumulator)
 
 
 # Tkinter GUI Setup
