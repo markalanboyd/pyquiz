@@ -6,19 +6,12 @@ from tkinter import *
 
 # Todos
 # TODO Check if API can be reached, display error message if not
-# TODO Welcome interface where you can set parameters
-# TODO Allow user to type name of category, throw error if mispelled
 # TODO Organize categories with subcategories
-# TODO Organize functions into module
 # TODO Multiple choice support
 # TODO Add different modes - lightning etc
 # TODO Add analysis file that shows category strengths
 # TODO Create algorithm that automatically adjusts difficulty
 # TODO Look for something more elegant than TKInterface to make GUI nicer
-# TODO Light/dark mode
-# TODO Breakout write json as a function in its own library
-# TODO Add token to API call to prevent same question being served
-# TODO Add loading indicator
 # TODO Break out classes/refactor
 # TODO Link difficulty selector to API request
 
@@ -33,6 +26,7 @@ CHARACTER_LIMIT = 100
 score = 0
 streak = 0
 questions = 0
+accumulator = 0
 
 question_dict: dict
 question_answered = True
@@ -75,50 +69,6 @@ def api_request_question() -> dict:
         "answer": unescape(question_json["results"][0]["correct_answer"]),
     }
     return question_dict
-
-
-def ask_category() -> None:
-    """
-    Requests a list of the available categories from the trivia API, prints them on screen, and prompts the user to select one. Once the user has selected a category, it modifies the config.json file with the corresponding category ID number.
-
-    :return: None
-    """
-
-    categories_json = api_request_categories()['trivia_categories']
-    len_categories = len(categories_json)
-    print("Select a category:\n")
-    for i in range(len_categories):
-        category = categories_json[i]['name']
-        print(f"{i + 1}. {category}")
-    while True:
-        try:
-            user_category_input = input("\nCategory: ")
-            # user_category_input = 1  # Automatically select General Knowledge for debugging
-            selected_category_name = categories_json[int(user_category_input) - 1]['name']
-            selected_category_id = categories_json[int(user_category_input) - 1]['id']
-            write_json("config.json", "category", selected_category_id)
-            print(f"\nYou picked: {selected_category_name}")
-        except IndexError:
-            print(f"Please enter an integer between 1 and {len_categories}")
-            continue
-        else:
-            break
-
-
-def ask_difficulty() -> None:
-    """
-    Ask the user to set one of three levels of difficulty (easy, medium, or hard), and then modifies the config.json file with the response.
-
-    :return: None
-    """
-    difficulty_dict = {
-        "e": "easy",
-        "m": "medium",
-        "h": "hard",
-    }
-    difficulty = input("What difficulty: Easy, Medium, or Hard? ")[0].lower()
-    # difficulty = "e"  # for debugging
-    write_json("config.json", "difficulty", difficulty_dict[difficulty])
 
 
 def update_scoreboard() -> None:
@@ -177,17 +127,18 @@ def write_json(filepath: str, key: str, value: str | int) -> None:
             dictionary[key] = value
             file.seek(0)
             json.dump(dictionary, file, indent=4)
+            file.truncate()
     except FileNotFoundError:
         with open(file=filepath, mode='w') as file:
             dictionary = {key: value}
             json.dump(dictionary, file, indent=4)
 
 
-def raise_frame(frame_to_raise):
+def raise_frame(frame_to_raise) -> None:
     frame_to_raise.tkraise()
 
 
-def next_question():
+def next_question() -> None:
     """
     Calls the trivia API requesting a question, then asks that question of the user, evaluates the answer, and increments the score if correct.
 
@@ -209,8 +160,8 @@ def next_question():
         button_false.config(command=answer_false)
 
 
-def check_answer():
-    global user_answer, question_answered, questions, score, streak
+def check_answer() -> None:
+    global user_answer, question_answered, questions, score, streak, accumulator
 
     question_answered = True
     button_true.config(command='')
@@ -226,7 +177,7 @@ def check_answer():
     update_scoreboard()
 
 
-def answer_true():
+def answer_true() -> None:
     global user_answer
 
     button_next_question.config(state='normal')
@@ -242,7 +193,7 @@ def answer_true():
     check_answer()
 
 
-def answer_false():
+def answer_false() -> None:
     global user_answer
 
     button_next_question.config(state='normal')
@@ -258,9 +209,35 @@ def answer_false():
     check_answer()
 
 
-def reset_stats():
+def reset_stats() -> None:
     write_json('user_data.json', 'high score', 0)
     write_json('user_data.json', 'best streak', 0)
+
+
+def write_settings() -> None:
+    difficulty_setting = selected_difficulty.get().lower()
+    if difficulty_setting != "auto":
+        write_json("config.json", key="difficulty", value=difficulty_setting)
+        write_json("user_data.json", key="auto", value="False")
+    else:
+        write_json("user_data.json", key="auto", value="True")
+
+
+def auto_difficulty() -> None:
+    global score, accumulator
+
+    difficulty_list = ['easy', 'medium', 'hard']
+    current_difficulty_index = difficulty_list.index(selected_difficulty.get())
+
+    if score > accumulator:
+        accumulator += 1
+        if current_difficulty_index < 2:
+            selected_difficulty.set(difficulty_list[current_difficulty_index + 1])
+    else:
+        if current_difficulty_index > 0:
+            selected_difficulty.set(difficulty_list[current_difficulty_index - 1])
+
+    print(selected_difficulty.get())
 
 
 # Tkinter GUI Setup
@@ -352,7 +329,10 @@ dropdown_difficulty = OptionMenu(frame_settings_widgets, selected_difficulty, *d
 dropdown_difficulty.config(width=4)
 dropdown_difficulty.grid(row=0, column=2, pady=10)
 
-button_settings_back = Button(frame_settings_widgets, text='Back', command=lambda: raise_frame(frame_welcome))
+button_settings_back = Button(frame_settings_widgets,
+                              text='Back',
+                              command=lambda: [raise_frame(frame_welcome), write_settings()]
+                              )
 button_settings_back.grid(row=1, column=1)
 
 
