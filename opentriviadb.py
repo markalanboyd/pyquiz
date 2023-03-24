@@ -48,21 +48,35 @@ def swap_keys_values(dictionary: dict) -> dict:
     """Swap a dictionary's keys and values."""
     return {value: key for key, value in dictionary.items()}
 
-def list_categories() -> list:
-    """Return a list of categories."""
+def memoize(func):
+    """Memoize a function."""
+    cache = {}
+    def wrapper(*args):
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+    return wrapper
+
+@memoize
+def get_categories_dict() -> dict:
+    """Return a dictionary of categories."""
     raw_categories = request_categories()
     parsed_categories = parse_categories(raw_categories)
     sorted_categories = sort_dict_by_values(parsed_categories)
-    categories_list = values_to_list(sorted_categories)
+    return sorted_categories
+
+def list_categories() -> list:
+    """Return a list of categories."""
+    categories_dict = get_categories_dict()
+    categories_list = values_to_list(categories_dict)
     return categories_list
 
 def get_category_id(category: str) -> int:
     """Return the ID of a category."""
-    raw_categories = request_categories()
-    parsed_categories = parse_categories(raw_categories)
-    sorted_categories = sort_dict_by_values(parsed_categories)
-    swapped_categories = swap_keys_values(sorted_categories)
+    categories_dict = get_categories_dict()
+    swapped_categories = swap_keys_values(categories_dict)
     return swapped_categories[category]
+
 
 def unescape_html_questions(questions: list) -> list:
     """Unescape HTML entities in a list of questions."""
@@ -127,7 +141,7 @@ def parse_correct_answers(questions: list) -> dict:
         correct_answers[questions.index(question)] = question['correct_answer']
     return correct_answers
 
-def parse_categories(questions: list) -> dict:
+def parse_question_categories(questions: list) -> dict:
     """
     Parse the categories into a dictionary of one string per question.
     """
@@ -154,5 +168,3 @@ questions = request_questions(token, category=category, amount=2)
 print(questions)
 print(parse_answers(questions))
 print(parse_questions(questions))
-print(parse_correct_answers(questions))
-print(parse_types(questions))
