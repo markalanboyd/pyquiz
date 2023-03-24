@@ -5,6 +5,7 @@ import html
 import requests
 import urllib.parse
 
+# Global constants
 API_REQUEST_URL = 'https://opentdb.com/api.php'
 API_REQUEST_TOKEN_URL = 'https://opentdb.com/api_token.php?command=request'
 API_CATEGORY_URL = 'https://opentdb.com/api_category.php'
@@ -16,6 +17,16 @@ API_RESPONSE_CODES = {
     3: 'Token not found',
     4: 'Token empty',
 }
+
+# Functions
+def memoize(func):
+    """Memoize a function."""
+    cache = {}
+    def wrapper(*args):
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+    return wrapper
 
 def request_token() -> str:
     """Request a token from the Open Trivia Database API."""
@@ -48,15 +59,6 @@ def swap_keys_values(dictionary: dict) -> dict:
     """Swap a dictionary's keys and values."""
     return {value: key for key, value in dictionary.items()}
 
-def memoize(func):
-    """Memoize a function."""
-    cache = {}
-    def wrapper(*args):
-        if args not in cache:
-            cache[args] = func(*args)
-        return cache[args]
-    return wrapper
-
 @memoize
 def get_categories_dict() -> dict:
     """Return a dictionary of categories."""
@@ -76,7 +78,6 @@ def get_category_id(category: str) -> int:
     categories_dict = get_categories_dict()
     swapped_categories = swap_keys_values(categories_dict)
     return swapped_categories[category]
-
 
 def unescape_html_questions(questions: list) -> list:
     """Unescape HTML entities in a list of questions."""
@@ -121,7 +122,7 @@ def parse_questions(questions: list) -> dict:
         questions_dict[questions.index(question)] = question['question']
     return questions_dict
 
-def parse_answers(questions: list) -> dict:
+def parse_questions_answers(questions: list) -> dict:
     """Parse the answers into a dictionary of one list per question."""
     answers = {}
     for question in questions:
@@ -131,7 +132,7 @@ def parse_answers(questions: list) -> dict:
             ]
     return answers
 
-def parse_correct_answers(questions: list) -> dict:
+def parse_questions_correct_answers(questions: list) -> dict:
     """
     Parse the correct answers into a dictionary of one string per 
     question.
@@ -141,7 +142,7 @@ def parse_correct_answers(questions: list) -> dict:
         correct_answers[questions.index(question)] = question['correct_answer']
     return correct_answers
 
-def parse_question_categories(questions: list) -> dict:
+def parse_questions_categories(questions: list) -> dict:
     """
     Parse the categories into a dictionary of one string per question.
     """
@@ -150,7 +151,7 @@ def parse_question_categories(questions: list) -> dict:
         categories[questions.index(question)] = question['category']
     return categories
 
-def parse_types(questions: list) -> dict:
+def parse_questions_types(questions: list) -> dict:
     """
     Parse the type of questions into a dictionary of one string per 
     question.
@@ -160,11 +161,41 @@ def parse_types(questions: list) -> dict:
         types[questions.index(question)] = question['type']
     return types
 
-# Test area
-token = request_token()
-category = 'Animals'
+def parse_questions_difficulty(questions: list) -> dict:
+    """
+    Parse the difficulty of questions into a dictionary of one string 
+    per question.
+    """
+    difficulty = {}
+    for question in questions:
+        difficulty[questions.index(question)] = question['difficulty']
+    return difficulty
 
-questions = request_questions(token, category=category, amount=2)
-print(questions)
-print(parse_answers(questions))
-print(parse_questions(questions))
+def main_test(questions: list) -> None:
+    """Test the main functions."""
+    print(
+        '\n',
+        # questions,'\n',
+        parse_questions_categories(questions),'\n',
+        parse_questions_difficulty(questions),'\n',
+        parse_questions(questions),'\n',
+        parse_questions_types(questions),'\n',
+        parse_questions_answers(questions),'\n',
+        parse_questions_correct_answers(questions),'\n',
+        )
+
+# Test area
+# token = request_token()
+# category = None
+
+# questions = request_questions(token, category=category, amount=2)
+# print(
+#     '\n',
+#     # questions,'\n',
+#     parse_questions_categories(questions),'\n',
+#     parse_questions_difficulty(questions),'\n',
+#     parse_questions(questions),'\n',
+#     parse_questions_types(questions),'\n',
+#     parse_questions_answers(questions),'\n',
+#     parse_questions_correct_answers(questions),'\n',
+#     )
