@@ -1,10 +1,10 @@
-import opentriviadb as trivia
+import opentriviadb as ot
 
 # Global constants
 
 
 # Global variables
-api_token = trivia.request_token()
+
 
 def main():
     """Main function."""

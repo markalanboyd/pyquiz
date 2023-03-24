@@ -68,7 +68,7 @@ def request_questions(token: str,
                       category: str = None,
                       difficulty: str = '',
                       type: str = '',
-                      amount: int = 1) -> dict:
+                      amount: int = 10) -> list:
     """Request questions from the Open Trivia Database API."""
     
     params = {
@@ -86,11 +86,21 @@ def request_questions(token: str,
     api_request_question_url = f'https://opentdb.com/api.php?{encoded_params}'
     request = requests.get(api_request_question_url)
     request.raise_for_status()
-    return request.json()
+    return request.json()['results']
 
+def parse_answers(questions: list) -> dict:
+    """Parse the answers into a dictionary of one list per question."""
+    answers = {}
+    for question in questions:
+        answers[questions.index(question)] = [
+            html.unescape(question['correct_answer']),
+            *html.unescape(question['incorrect_answers']),
+            ]
+    return answers
 
 # Test area
 token = request_token()
 category = 'Animals'
 
-print(request_questions(token))
+questions = request_questions(token)
+print(parse_answers(questions))
