@@ -5,21 +5,28 @@ import html
 import requests
 import urllib.parse
 
+API_REQUEST_URL = 'https://opentdb.com/api.php'
+API_REQUEST_TOKEN_URL = 'https://opentdb.com/api_token.php?command=request'
+API_CATEGORY_URL = 'https://opentdb.com/api_category.php'
+
+API_RESPONSE_CODES = {
+    0: 'Success',
+    1: 'No results',
+    2: 'Invalid parameter',
+    3: 'Token not found',
+    4: 'Token empty',
+}
 
 def request_token() -> str:
     """Request a token from the Open Trivia Database API."""
-    API_REQUEST_URL = 'https://opentdb.com/api_token.php?command=request'
-    
-    request = requests.get(API_REQUEST_URL)
+    request = requests.get(API_REQUEST_TOKEN_URL)
+    request.raise_for_status()
     return request.json()['token']
-
-token = request_token()
 
 def request_categories() -> dict:
     """Request a list of categories from the Open Trivia Database API."""
-    API_REQUEST_URL = 'https://opentdb.com/api_category.php'
-    
-    request = requests.get(API_REQUEST_URL)
+    request = requests.get(API_CATEGORY_URL)
+    request.raise_for_status()
     return request.json()['trivia_categories']
 
 def parse_categories(categories: dict) -> dict:
@@ -76,11 +83,14 @@ def request_questions(token: str,
 
     encoded_params = urllib.parse.urlencode(params)
     
-    API_REQUEST_URL = f'https://opentdb.com/api.php?{encoded_params}'
-    request = requests.get(API_REQUEST_URL)
+    api_request_question_url = f'https://opentdb.com/api.php?{encoded_params}'
+    request = requests.get(api_request_question_url)
+    request.raise_for_status()
     return request.json()
 
 
+# Test area
+token = request_token()
 category = 'Animals'
 
 print(request_questions(token))
