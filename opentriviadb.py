@@ -64,6 +64,15 @@ def get_category_id(category: str) -> int:
     swapped_categories = swap_keys_values(sorted_categories)
     return swapped_categories[category]
 
+def unescape_html_questions(questions: list) -> list:
+    """Unescape HTML entities in a list of questions."""
+    for question in questions:
+        question['question'] = html.unescape(question['question'])
+        question['correct_answer'] = html.unescape(question['correct_answer'])
+        for answer in question['incorrect_answers']:
+            answer = html.unescape(answer)
+    return questions
+
 def request_questions(token: str, 
                       category: str = None,
                       difficulty: str = '',
@@ -86,21 +95,64 @@ def request_questions(token: str,
     api_request_question_url = f'https://opentdb.com/api.php?{encoded_params}'
     request = requests.get(api_request_question_url)
     request.raise_for_status()
-    return request.json()['results']
+    unescaped_request = unescape_html_questions(request.json()['results'])
+    return unescaped_request
+
+def parse_questions(questions: list) -> dict:
+    """
+    Parse the questions into a dictionary of one string per question.
+    """
+    questions_dict = {}
+    for question in questions:
+        questions_dict[questions.index(question)] = question['question']
+    return questions_dict
 
 def parse_answers(questions: list) -> dict:
     """Parse the answers into a dictionary of one list per question."""
     answers = {}
     for question in questions:
         answers[questions.index(question)] = [
-            html.unescape(question['correct_answer']),
-            *html.unescape(question['incorrect_answers']),
+            question['correct_answer'],
+            *question['incorrect_answers'],
             ]
     return answers
+
+def parse_correct_answers(questions: list) -> dict:
+    """
+    Parse the correct answers into a dictionary of one string per 
+    question.
+    """
+    correct_answers = {}
+    for question in questions:
+        correct_answers[questions.index(question)] = question['correct_answer']
+    return correct_answers
+
+def parse_categories(questions: list) -> dict:
+    """
+    Parse the categories into a dictionary of one string per question.
+    """
+    categories = {}
+    for question in questions:
+        categories[questions.index(question)] = question['category']
+    return categories
+
+def parse_types(questions: list) -> dict:
+    """
+    Parse the type of questions into a dictionary of one string per 
+    question.
+    """
+    types = {}
+    for question in questions:
+        types[questions.index(question)] = question['type']
+    return types
 
 # Test area
 token = request_token()
 category = 'Animals'
 
-questions = request_questions(token)
+questions = request_questions(token, category=category, amount=2)
+print(questions)
 print(parse_answers(questions))
+print(parse_questions(questions))
+print(parse_correct_answers(questions))
+print(parse_types(questions))
