@@ -1,9 +1,10 @@
 body {
     background: rgb(205, 205, 205);
+    color: rgb(55, 55, 55);
 }
 
 .bg-custom {
-    background-color: #ede486;
-    border-radius: 1rem;
+    background-color: beige;
+    border-radius: 2rem;
   }
   
