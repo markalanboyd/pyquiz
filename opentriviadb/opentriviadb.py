@@ -171,8 +171,11 @@ def parse_questions_difficulty(questions: list) -> dict:
         difficulty[questions.index(question)] = question['difficulty']
     return difficulty
 
-def main_test(questions: list) -> None:
+def main_test() -> None:
     """Test the main functions."""
+    token = request_token()
+    category = None
+    questions = request_questions(token, category=category, amount=2)
     print(
         '\n',
         # questions,'\n',
@@ -183,19 +186,3 @@ def main_test(questions: list) -> None:
         parse_questions_answers(questions),'\n',
         parse_questions_correct_answers(questions),'\n',
         )
-
-# Test area
-# token = request_token()
-# category = None
-
-# questions = request_questions(token, category=category, amount=2)
-# print(
-#     '\n',
-#     # questions,'\n',
-#     parse_questions_categories(questions),'\n',
-#     parse_questions_difficulty(questions),'\n',
-#     parse_questions(questions),'\n',
-#     parse_questions_types(questions),'\n',
-#     parse_questions_answers(questions),'\n',
-#     parse_questions_correct_answers(questions),'\n',
-#     )
