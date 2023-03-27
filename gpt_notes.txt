@@ -1,0 +1,16 @@
+Folder Structure:
+
+pyquiz/
+    pyquiz_app/
+        cli/
+            pyquizcli/
+                __init__.py
+                pyquizcli.py
+            __init__.py
+            cli_readme.txt
+            main.py
+        opentriviadb/
+            __init__.py
+            opentriviadb.py
+        __init__.py
+    run_cli.py
