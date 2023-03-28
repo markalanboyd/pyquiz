@@ -175,7 +175,7 @@ def main_test() -> None:
     """Test the main functions."""
     token = request_token()
     category = None
-    questions = request_questions(token, category=category, amount=2)
+    questions = request_questions(token, category=category, amount=1)
     print(
         '\n',
         # questions,'\n',
