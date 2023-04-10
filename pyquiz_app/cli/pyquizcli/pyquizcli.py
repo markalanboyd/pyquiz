@@ -1,22 +1,25 @@
 import curses
 
-def draw_menu(stdscr):
+def draw_main_menu(stdscr):
+    curses.start_color()
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_WHITE)
+    GREEN_AND_WHITE = curses.color_pair(1)
+
     # Clear the screen
     stdscr.clear()
 
     # Get the size of the terminal
     height, width = stdscr.getmaxyx()
 
-    # Draw the border
-    border = curses.newwin(height, width, 0, 0)
-    border.border()
-
     # Draw the menu options
     menu_items = ['NEW GAME', 'STATS', 'SETTINGS', 'EXIT']
-    x_pos = int((width - max(map(len, menu_items))) / 2)  # Center the menu horizontally
-    y_pos = int(height / 2) - 2  # Center the menu vertically
+    # Center the menu horizontally
+    x_pos = int((width - max(map(len, menu_items))) / 2)
+    # Center the menu vertically
+    y_pos = int(height / 2) - 2 
     for index, item in enumerate(menu_items):
-        x = x_pos - 4 if index == 0 else x_pos  # Indent the first menu item
+        x = x_pos
         y = y_pos + index
         stdscr.addstr(y, x, item)
 
@@ -56,9 +59,9 @@ def draw_menu(stdscr):
             elif cursor_pos == 3:
                 exit()
 
-def new_game():
-    # Code for the "New Game" screen goes here
-    pass
+def new_game(stdscr):
+    stdscr.clear()
+    
 
 def stats():
     # Code for the "Stats" screen goes here
@@ -76,7 +79,7 @@ def main():
     stdscr.keypad(True)
 
     # Draw the menu
-    draw_menu(stdscr)
+    draw_main_menu(stdscr)
 
     # Clean up curses
     curses.nocbreak()
